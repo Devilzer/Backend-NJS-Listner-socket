@@ -16,16 +16,17 @@ const wsServer = new webSocketServer({
 let iv = "1234123412341234";
 let key = '12345678123456781234567812345678';
 var dataObjs = [];
-wsServer.on('request',(request)=>{
+wsServer.on('request',async(request)=>{
     console.log((new Date()) + ' Recieved a new connection from origin ' + request.origin + '.');
-    console.log("mongoooooooooooooooooooo");
+    
+    //clearing database on new connection.
+    await Data.remove({});
     const connection = request.accept(null, request.origin);
     console.log(' Connection accepted.');
 
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
-            // const data = JSON.parse(message.utf8Data);
-            // console.log('Received Message: ' + message.utf8Data);
+            var tempData = [];
             var dataArray = message.utf8Data.split("|");
             // console.log(dataArray);
             for(let i=0 ;i<dataArray.length;i++){
@@ -42,13 +43,12 @@ wsServer.on('request',(request)=>{
                 //checking data integrity...
                 const data_key = crypto.createHash("sha256").update(JSON.stringify(obj)).digest('hex');
                 if(data_key===data.secret_key){
-                    dataObjs.push(obj);
+                    tempData.push(obj);
                 }
             }
-            console.log(dataObjs);
-            // connection.send(JSON.stringify({
-            //     message : uData
-            // }));
+            dataObjs =[...dataObjs,...tempData];
+            //sending dataarray backto client.
+            connection.send(JSON.stringify(tempData));
         }
     });
     connection.on('close', function(reasonCode, description) {
@@ -56,6 +56,7 @@ wsServer.on('request',(request)=>{
     });
 });
 
+//save data on every minute.
 setInterval(async()=>{
     if(dataObjs.length!==0){
         const data = new Data;
