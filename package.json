@@ -10,7 +10,9 @@
   "author": "Deepak Jena",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "http": "0.0.1-security",
+    "mongoose": "^5.11.16",
     "nodemon": "^2.0.7",
     "websocket": "^1.0.33"
   }
